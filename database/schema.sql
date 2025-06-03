@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS `roles` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `role_name_UNIQUE` (`role_name` ASC) VISIBLE)
+  UNIQUE INDEX `role_name_UNIQUE` (`role_name` ASC))
 ENGINE = InnoDB;
 
 
@@ -32,8 +32,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE,
-  INDEX `fk_users_roles_idx` (`role_id` ASC) VISIBLE,
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC),
+  INDEX `fk_users_roles_idx` (`role_id` ASC),
   CONSTRAINT `fk_users_roles`
     FOREIGN KEY (`role_id`)
     REFERENCES `roles` (`id`)
@@ -59,9 +59,9 @@ CREATE TABLE IF NOT EXISTS `clients` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `client_email_UNIQUE` (`client_email` ASC) VISIBLE,
-  INDEX `fk_clients_users_assigned_idx` (`assigned_to_user_id` ASC) VISIBLE,
-  INDEX `fk_clients_users_created_idx` (`created_by_user_id` ASC) VISIBLE,
+  UNIQUE INDEX `client_email_UNIQUE` (`client_email` ASC),
+  INDEX `fk_clients_users_assigned_idx` (`assigned_to_user_id` ASC),
+  INDEX `fk_clients_users_created_idx` (`created_by_user_id` ASC),
   CONSTRAINT `fk_clients_users_assigned`
     FOREIGN KEY (`assigned_to_user_id`)
     REFERENCES `users` (`id`)
@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS `services` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_services_users_idx` (`created_by_user_id` ASC) VISIBLE,
+  INDEX `fk_services_users_idx` (`created_by_user_id` ASC),
   CONSTRAINT `fk_services_users`
     FOREIGN KEY (`created_by_user_id`)
     REFERENCES `users` (`id`)
@@ -117,10 +117,10 @@ CREATE TABLE IF NOT EXISTS `tasks` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_tasks_clients_idx` (`client_id` ASC) VISIBLE,
-  INDEX `fk_tasks_services_idx` (`service_id` ASC) VISIBLE,
-  INDEX `fk_tasks_users_assigned_idx` (`assigned_to_user_id` ASC) VISIBLE,
-  INDEX `fk_tasks_users_created_idx` (`created_by_user_id` ASC) VISIBLE,
+  INDEX `fk_tasks_clients_idx` (`client_id` ASC),
+  INDEX `fk_tasks_services_idx` (`service_id` ASC),
+  INDEX `fk_tasks_users_assigned_idx` (`assigned_to_user_id` ASC),
+  INDEX `fk_tasks_users_created_idx` (`created_by_user_id` ASC),
   CONSTRAINT `fk_tasks_clients`
     FOREIGN KEY (`client_id`)
     REFERENCES `clients` (`id`)
@@ -155,8 +155,8 @@ CREATE TABLE IF NOT EXISTS `task_comments` (
   `comment_text` TEXT NOT NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_task_comments_tasks_idx` (`task_id` ASC) VISIBLE,
-  INDEX `fk_task_comments_users_idx` (`user_id` ASC) VISIBLE,
+  INDEX `fk_task_comments_tasks_idx` (`task_id` ASC),
+  INDEX `fk_task_comments_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_task_comments_tasks`
     FOREIGN KEY (`task_id`)
     REFERENCES `tasks` (`id`)
@@ -187,9 +187,9 @@ CREATE TABLE IF NOT EXISTS `documents` (
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_documents_clients_idx` (`client_id` ASC) VISIBLE,
-  INDEX `fk_documents_tasks_idx` (`task_id` ASC) VISIBLE,
-  INDEX `fk_documents_users_idx` (`uploaded_by_user_id` ASC) VISIBLE,
+  INDEX `fk_documents_clients_idx` (`client_id` ASC),
+  INDEX `fk_documents_tasks_idx` (`task_id` ASC),
+  INDEX `fk_documents_users_idx` (`uploaded_by_user_id` ASC),
   CONSTRAINT `fk_documents_clients`
     FOREIGN KEY (`client_id`)
     REFERENCES `clients` (`id`)
@@ -222,7 +222,7 @@ CREATE TABLE IF NOT EXISTS `notifications` (
   `read_status` TINYINT(1) NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_notifications_users_idx` (`user_id` ASC) VISIBLE,
+  INDEX `fk_notifications_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_notifications_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
@@ -246,7 +246,7 @@ CREATE TABLE IF NOT EXISTS `activity_logs` (
   `user_agent` TEXT NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `fk_activity_logs_users_idx` (`user_id` ASC) VISIBLE,
+  INDEX `fk_activity_logs_users_idx` (`user_id` ASC),
   CONSTRAINT `fk_activity_logs_users`
     FOREIGN KEY (`user_id`)
     REFERENCES `users` (`id`)
@@ -267,8 +267,8 @@ CREATE TABLE IF NOT EXISTS `settings` (
   `updated_by_user_id` INT NULL,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `setting_key_UNIQUE` (`setting_key` ASC) VISIBLE,
-  INDEX `fk_settings_users_idx` (`updated_by_user_id` ASC) VISIBLE,
+  UNIQUE INDEX `setting_key_UNIQUE` (`setting_key` ASC),
+  INDEX `fk_settings_users_idx` (`updated_by_user_id` ASC),
   CONSTRAINT `fk_settings_users`
     FOREIGN KEY (`updated_by_user_id`)
     REFERENCES `users` (`id`)
