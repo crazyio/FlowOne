@@ -65,23 +65,12 @@ $router->addRoute('GET', '/logout', [AuthController::class, 'logout']); // Logou
 $router->addRoute('GET', '/', [AuthController::class, 'showLoginForm']); // Default to login
 $router->addRoute('GET', '/dashboard', [DashboardController::class, 'index']); // Dashboard route
 
-// Simulate a request for verification.
-// If site is at domain.com/admin/, and index.php is in /admin/ folder:
-// $_SERVER['REQUEST_URI'] would be '/admin/login' or '/admin/'
-// $_SERVER['SCRIPT_NAME'] would be '/admin/index.php'
-// We need router to match 'login' or ''.
-// The router's new logic should handle this by deriving path relative to SCRIPT_NAME
-$_SERVER['REQUEST_METHOD'] = 'GET';
-// Simulate being accessed via /admin/ segment
-$_SERVER['HTTP_HOST'] = 'localhost'; // example host
-$_SERVER['SCRIPT_NAME'] = (BASE_URL_SEGMENT_FOR_LINKS ? BASE_URL_SEGMENT_FOR_LINKS : '') . '/index.php';
-$_SERVER['REQUEST_URI'] = (BASE_URL_SEGMENT_FOR_LINKS ? BASE_URL_SEGMENT_FOR_LINKS : '') . '/login';
-// To test dashboard, change simulation or rely on actual browser testing with .htaccess
-// For now, keeping login as the simulated target for index.php execution.
-// $_SERVER['REQUEST_URI'] = (BASE_URL_SEGMENT_FOR_LINKS ? BASE_URL_SEGMENT_FOR_LINKS : '') . '/dashboard';
+// The block for simulating $_SERVER variables has been removed.
+// The application will now rely on the actual $_SERVER variables provided by the web server
+// (or the command line environment if run via CLI, though that's not its primary execution mode).
 
 echo "<fieldset style='border:2px solid red; padding:10px; margin:10px;'>";
-echo "<legend>DEBUG: index.php (Before Router Dispatch)</legend>";
+echo "<legend>DEBUG: index.php (Before Router Dispatch) - SERVER variables are REAL</legend>";
 echo "REQUEST_METHOD: " . htmlspecialchars($_SERVER['REQUEST_METHOD'] ?? 'NOT SET') . "<br>";
 echo "REQUEST_URI: " . htmlspecialchars($_SERVER['REQUEST_URI'] ?? 'NOT SET') . "<br>";
 echo "SCRIPT_NAME: " . htmlspecialchars($_SERVER['SCRIPT_NAME'] ?? 'NOT SET') . "<br>";
