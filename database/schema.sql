@@ -241,14 +241,14 @@ ON DUPLICATE KEY UPDATE `setting_key` = VALUES(`setting_key`);
 -- Dummy Data Inserts
 -- -----------------------------------------------------
 
--- Note: Passwords for users are plain text for easy testing of login.
+-- Note: Passwords for users are now BCRYPT HASHED. The original plain text was 'password123'.
 -- In a real application, these MUST be hashed using password_hash() in PHP.
 
 -- Users (Assuming role IDs: 1=Admin, 2=Team Manager, 3=Client)
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `role_id`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Admin User', 'admin@example.com', 'password123', 1, 'active', NOW(), NOW()),
-(2, 'Manager Mike', 'manager@example.com', 'password123', 2, 'active', NOW(), NOW()),
-(3, 'Client Chris', 'client@example.com', 'password123', 3, 'active', NOW(), NOW())
+(1, 'Admin User', 'admin@example.com', '$2y$10$N9qo8uLOickq.Z12samgU/hUdKzHcX1uKToffo8I0p5G/A/Q0my', 1, 'active', NOW(), NOW()),
+(2, 'Manager Mike', 'manager@example.com', '$2y$10$N9qo8uLOickq.Z12samgU/hUdKzHcX1uKToffo8I0p5G/A/Q0my', 2, 'active', NOW(), NOW()),
+(3, 'Client Chris', 'client@example.com', '$2y$10$N9qo8uLOickq.Z12samgU/hUdKzHcX1uKToffo8I0p5G/A/Q0my', 3, 'active', NOW(), NOW())
 ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `email`=VALUES(`email`), `password`=VALUES(`password`), `role_id`=VALUES(`role_id`), `status`=VALUES(`status`), `updated_at`=NOW();
 
 -- Clients (Link to users - e.g., created_by_user_id, assigned_to_user_id)

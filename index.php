@@ -27,6 +27,11 @@ spl_autoload_register(function ($class) {
 $configApp = require CONFIG_PATH . DS . 'app.php';
 // $db_config = require CONFIG_PATH . DS . 'database.php';
 
+use App\Core\Session; // Added for Session management
+
+// Start session
+Session::start(); // Initialize session handling
+
 // Define Base URL and Application Base Path
 // If this index.php is at the root of what /admin/ serves,
 // then APP_BASE_PATH for internal routing logic is effectively empty.
@@ -44,13 +49,11 @@ define('BASE_URL_SEGMENT_FOR_LINKS', $base_url_segment_for_links ? '/' . $base_u
 define('APP_BASE_PATH_FOR_ROUTER', '');
 
 
-// Start session
-if (session_status() == PHP_SESSION_NONE) {
-    session_start();
-}
-
+// use App\Core\Session; // Already added above
 use App\Core\Router;
 use App\Controllers\AuthController;
+use App\Controllers\DashboardController; // Added for Dashboard
+// Removed: if (session_status() == PHP_SESSION_NONE) { session_start(); } - Handled by Session::start()
 
 // Router's basePathToIgnore is empty because we assume .htaccess (or server config)
 // will make URIs relative to this index.php if it's in a subdirectory like /admin/
@@ -58,7 +61,9 @@ $router = new Router(APP_BASE_PATH_FOR_ROUTER);
 
 $router->addRoute('GET', '/login', [AuthController::class, 'showLoginForm']);
 $router->addRoute('POST', '/login', [AuthController::class, 'login']);
+$router->addRoute('GET', '/logout', [AuthController::class, 'logout']); // Logout route
 $router->addRoute('GET', '/', [AuthController::class, 'showLoginForm']); // Default to login
+$router->addRoute('GET', '/dashboard', [DashboardController::class, 'index']); // Dashboard route
 
 // Simulate a request for verification.
 // If site is at domain.com/admin/, and index.php is in /admin/ folder:
@@ -71,6 +76,9 @@ $_SERVER['REQUEST_METHOD'] = 'GET';
 $_SERVER['HTTP_HOST'] = 'localhost'; // example host
 $_SERVER['SCRIPT_NAME'] = (BASE_URL_SEGMENT_FOR_LINKS ? BASE_URL_SEGMENT_FOR_LINKS : '') . '/index.php';
 $_SERVER['REQUEST_URI'] = (BASE_URL_SEGMENT_FOR_LINKS ? BASE_URL_SEGMENT_FOR_LINKS : '') . '/login';
+// To test dashboard, change simulation or rely on actual browser testing with .htaccess
+// For now, keeping login as the simulated target for index.php execution.
+// $_SERVER['REQUEST_URI'] = (BASE_URL_SEGMENT_FOR_LINKS ? BASE_URL_SEGMENT_FOR_LINKS : '') . '/dashboard';
 
 
 try {
