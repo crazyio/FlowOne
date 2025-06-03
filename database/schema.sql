@@ -235,3 +235,41 @@ INSERT INTO `settings` (`setting_key`, `setting_value`, `description`) VALUES
 ('default_timezone', 'UTC', 'Default timezone for date and time display.'),
 ('email_notifications_enabled', '1', 'Enable or disable email notifications (1=enabled, 0=disabled).')
 ON DUPLICATE KEY UPDATE `setting_key` = VALUES(`setting_key`);
+
+
+-- -----------------------------------------------------
+-- Dummy Data Inserts
+-- -----------------------------------------------------
+
+-- Note: Passwords for users are plain text for easy testing of login.
+-- In a real application, these MUST be hashed using password_hash() in PHP.
+
+-- Users (Assuming role IDs: 1=Admin, 2=Team Manager, 3=Client)
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role_id`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Admin User', 'admin@example.com', 'password123', 1, 'active', NOW(), NOW()),
+(2, 'Manager Mike', 'manager@example.com', 'password123', 2, 'active', NOW(), NOW()),
+(3, 'Client Chris', 'client@example.com', 'password123', 3, 'active', NOW(), NOW())
+ON DUPLICATE KEY UPDATE `name`=VALUES(`name`), `email`=VALUES(`email`), `password`=VALUES(`password`), `role_id`=VALUES(`role_id`), `status`=VALUES(`status`), `updated_at`=NOW();
+
+-- Clients (Link to users - e.g., created_by_user_id, assigned_to_user_id)
+INSERT INTO `clients` (`id`, `client_name`, `client_email`, `client_phone`, `company_name`, `assigned_to_user_id`, `status`, `created_by_user_id`, `created_at`, `updated_at`) VALUES
+(1, 'Alpha Corp', 'contact@alphacorp.com', '555-0101', 'Alpha Corporation', 2, 'active', 1, NOW(), NOW()),
+(2, 'Beta Solutions', 'info@betasolutions.com', '555-0102', 'Beta Solutions LLC', 2, 'active', 1, NOW(), NOW()),
+(3, 'Gamma Industries', 'support@gammaind.com', '555-0103', 'Gamma Industries', NULL, 'prospect', 2, NOW(), NOW())
+ON DUPLICATE KEY UPDATE `client_name`=VALUES(`client_name`), `client_email`=VALUES(`client_email`), `assigned_to_user_id`=VALUES(`assigned_to_user_id`), `status`=VALUES(`status`), `created_by_user_id`=VALUES(`created_by_user_id`), `updated_at`=NOW();
+
+-- Services
+INSERT INTO `services` (`id`, `service_name`, `description`, `default_duration_days`, `status`, `created_by_user_id`, `created_at`, `updated_at`) VALUES
+(1, 'Standard Consultation', 'Initial consultation service to assess client needs.', 1, 'active', 1, NOW(), NOW()),
+(2, 'Project Setup', 'Service for setting up a new project environment for a client.', 5, 'active', 1, NOW(), NOW()),
+(3, 'Monthly Maintenance', 'Ongoing monthly maintenance and support.', 30, 'active', 2, NOW(), NOW())
+ON DUPLICATE KEY UPDATE `service_name`=VALUES(`service_name`), `description`=VALUES(`description`), `status`=VALUES(`status`), `created_by_user_id`=VALUES(`created_by_user_id`), `updated_at`=NOW();
+
+-- Tasks (Link to clients, services, and users)
+INSERT INTO `tasks` (`id`, `task_title`, `task_description`, `client_id`, `service_id`, `assigned_to_user_id`, `status`, `priority`, `due_date`, `created_by_user_id`, `created_at`, `updated_at`) VALUES
+(1, 'Initial Call with Alpha Corp', 'Schedule and conduct initial consultation call.', 1, 1, 2, 'To Do', 'High', DATE_ADD(CURDATE(), INTERVAL 7 DAY), 1, NOW(), NOW()),
+(2, 'Setup Beta Solutions Project Env', 'Complete project environment setup as per specs.', 2, 2, 2, 'In Progress', 'High', DATE_ADD(CURDATE(), INTERVAL 14 DAY), 1, NOW(), NOW()),
+(3, 'Review Gamma Industries Proposal', 'Review their requirements and prepare a proposal.', 3, 1, 2, 'To Do', 'Medium', DATE_ADD(CURDATE(), INTERVAL 5 DAY), 2, NOW(), NOW()),
+(4, 'Alpha Corp Follow-up Q1', 'Follow up regarding Q1 deliverables.', 1, NULL, 2, 'Pending Client Input', 'Medium', DATE_ADD(CURDATE(), INTERVAL 30 DAY), 2, NOW(), NOW()),
+(5, 'Monthly Maintenance for Beta Solutions - Jan', 'Perform January maintenance tasks.', 2, 3, 2, 'Done', 'Medium', DATE_SUB(CURDATE(), INTERVAL 5 DAY), 2, DATE_SUB(CURDATE(), INTERVAL 10 DAY), DATE_SUB(CURDATE(), INTERVAL 5 DAY))
+ON DUPLICATE KEY UPDATE `task_title`=VALUES(`task_title`), `client_id`=VALUES(`client_id`), `service_id`=VALUES(`service_id`), `assigned_to_user_id`=VALUES(`assigned_to_user_id`), `status`=VALUES(`status`), `priority`=VALUES(`priority`), `due_date`=VALUES(`due_date`), `created_by_user_id`=VALUES(`created_by_user_id`), `updated_at`=NOW();
