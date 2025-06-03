@@ -28,11 +28,27 @@ class Router {
         if ($path_info) {
              $uri = trim($path_info, '/');
         } else {
-            $script_dir = dirname($_SERVER['SCRIPT_NAME']);
-            $script_dir = ($script_dir == '/' || $script_dir == '\\') ? '' : $script_dir;
-            // $script_dir = trim($script_dir, '/'); // Original logic trimmed here, let's test without for preg_quote
-            $relative_uri = preg_replace('#^'.preg_quote($script_dir, '#').'#', '', $fullRequestUri);
-            $uri = trim($relative_uri, '/');
+            // $fullRequestUri is already trimmed of leading/trailing slashes, e.g., 'admin/login'
+            $raw_script_dir = dirname($_SERVER['SCRIPT_NAME']); // e.g., '/admin' or '/' if in root
+
+            // Normalize script_dir: remove trailing slash if not root, then remove leading slash
+            if ($raw_script_dir === '/' || $raw_script_dir === '\\') {
+                $normalized_script_dir = ''; // Represents root, no prefix to strip
+            } else {
+                $normalized_script_dir = trim($raw_script_dir, '/'); // e.g., 'admin'
+            }
+
+            if (!empty($normalized_script_dir) && strpos($fullRequestUri, $normalized_script_dir) === 0) {
+                // Strip the normalized_script_dir from the beginning of fullRequestUri
+                // Add 1 for the slash if normalized_script_dir is not empty
+                $uri = trim(substr($fullRequestUri, strlen($normalized_script_dir) + (strlen($normalized_script_dir) > 0 ? 1 : 0) ), '/');
+            } else if (empty($normalized_script_dir)) {
+                // If script is in root, fullRequestUri is the uri
+                $uri = $fullRequestUri;
+            } else {
+                // Fallback or if script_dir is not part of fullRequestUri (should not happen with .htaccess RewriteBase)
+                $uri = $fullRequestUri; // Or handle as an error/special case
+            }
         }
 
         echo "<fieldset style='border:2px solid blue; padding:10px; margin:10px;'>";
