@@ -13,11 +13,11 @@
     <form action="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/login" method="POST"> <!-- Action URL to be handled by router -->
         <div class="form-group">
             <label for="email">Email</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" value="admin@example.com" required>
         </div>
         <div class="form-group">
             <label for="password">Password</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="password" value="password123" required>
         </div>
         <div class="form-group">
             <input type="checkbox" id="remember" name="remember">
