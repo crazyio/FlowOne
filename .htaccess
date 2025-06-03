@@ -1,0 +1,52 @@
+# Flow One Back Office - Root .htaccess
+# This file should be in the directory that corresponds to your base URL segment (e.g., /admin/)
+
+# Turn on URL rewriting
+RewriteEngine On
+
+# Set the base for rewrite rules.
+# If your application is in a subdirectory (e.g., yourdomain.com/admin/),
+# set this to /admin/ (including the trailing slash).
+# If your application is at the domain root, set this to /
+# This needs to match the 'base_path_segment_for_links' in your app config for consistency.
+# For this project, assuming it's /admin/
+RewriteBase /admin/
+
+# Deny access to sensitive directories
+RewriteRule ^app/ - [F,L]
+RewriteRule ^config/ - [F,L]
+RewriteRule ^database/ - [F,L]
+RewriteRule ^tests/ - [F,L]
+RewriteRule ^vendor/ - [F,L] # If using Composer later
+
+# Deny access to .htaccess, .htpasswd, .env files
+RewriteRule /\.(htaccess|htpasswd|env)$ - [F,L]
+
+# Allow access to .well-known directory (for SSL certs like Let's Encrypt)
+RewriteRule ^\.well-known/.* - [L]
+
+# Route requests for existing files or directories directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# If the request is not for an existing file or directory,
+# route everything else to index.php (front controller)
+RewriteRule ^ index.php [L]
+
+<IfModule mod_headers.c>
+    # Secure Headers (optional but recommended)
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    # Header set Content-Security-Policy "default-src 'self';" # Start restrictive and open up as needed
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# PHP settings (optional, can often be set in php.ini)
+# php_flag display_errors Off # For production
+# php_value error_reporting E_ALL # For development
+# php_value upload_max_filesize 10M
+# php_value post_max_size 10M

@@ -4,23 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($pageTitle ?? 'Flow One'); ?></title>
-    <link rel="stylesheet" href="<?php echo defined('APP_BASE_PATH') ? APP_BASE_PATH : ''; ?>/css/style.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/css/style.css">
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
             <div class="logo">Flow One</div>
             <div class="user-menu">
-                <span>User Name</span> | <a href="<?php echo defined('APP_BASE_PATH') ? APP_BASE_PATH : ''; ?>/logout">Logout</a> <!-- Adjust link -->
+                <span>User Name</span> | <a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/logout">Logout</a>
             </div>
         </header>
 
         <nav class="app-sidebar">
             <p>Sidebar Navigation Placeholder</p>
             <ul>
-                <li><a href="<?php echo defined('APP_BASE_PATH') ? APP_BASE_PATH : ''; ?>/dashboard">Dashboard</a></li> <!-- Adjust link -->
-                <li><a href="<?php echo defined('APP_BASE_PATH') ? APP_BASE_PATH : ''; ?>/users">Users</a></li> <!-- Adjust link -->
-                <li><a href="<?php echo defined('APP_BASE_PATH') ? APP_BASE_PATH : ''; ?>/clients">Clients</a></li> <!-- Adjust link -->
+                <li><a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/dashboard">Dashboard</a></li>
+                <li><a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/users">Users</a></li>
+                <li><a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/clients">Clients</a></li>
             </ul>
         </nav>
 
@@ -32,7 +32,7 @@
             <p>&copy; <?php echo date('Y'); ?> Flow One. All rights reserved.</p>
         </footer>
     </div>
-    <script src="<?php echo defined('APP_BASE_PATH') ? APP_BASE_PATH : ''; ?>/js/jquery.min.js"></script>
-    <script src="<?php echo defined('APP_BASE_PATH') ? APP_BASE_PATH : ''; ?>/js/app.js"></script>
+    <script src="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/js/jquery.min.js"></script>
+    <script src="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/js/app.js"></script>
 </body>
 </html>
