@@ -20,61 +20,78 @@ class Router {
 
     public function dispatch() {
         $method = strtoupper($_SERVER['REQUEST_METHOD']);
-        // Get the full request URI path (e.g., /admin/login/ or /login/)
-        $fullRequestUriPath = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+        $fullRequestUri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
 
-        // Determine the script's path relative to the document root (e.g., /admin or empty if at root)
-        $scriptDirPath = dirname($_SERVER['SCRIPT_NAME']);
-        $scriptDirPath = ($scriptDirPath === '.' || $scriptDirPath === '/' || $scriptDirPath === '\\') ? '' : $scriptDirPath;
-        $scriptDirPath = trim($scriptDirPath, '/');
-
-        $uri = $fullRequestUriPath;
-        // If the script is in a subdirectory (e.g. /admin) and the request URI starts with that path,
-        // we want the URI relative to that script directory.
-        if ($scriptDirPath !== '' && strpos($fullRequestUriPath, $scriptDirPath) === 0) {
-            $uri = trim(substr($fullRequestUriPath, strlen($scriptDirPath)), '/');
-        } elseif ($scriptDirPath === '') {
-            // Script is at root, so fullRequestUriPath is already relative to it
-            $uri = $fullRequestUriPath;
+        // This is the URI calculation logic currently in the Router.
+        // It might be refined based on index.php debug output.
+        $path_info = $_SERVER['PATH_INFO'] ?? null;
+        if ($path_info) {
+             $uri = trim($path_info, '/');
         } else {
-            // This case should ideally not be hit if SCRIPT_NAME and REQUEST_URI are sane
-            // Or it means SCRIPT_NAME is not a prefix of REQUEST_URI, which is unusual.
-            // For safety, use the full request URI path if logic is unclear.
-            // This might happen if .htaccess rewrites heavily in a complex way.
-             // $uri = $fullRequestUriPath; // Already set
+            $script_dir = dirname($_SERVER['SCRIPT_NAME']);
+            $script_dir = ($script_dir == '/' || $script_dir == '\\') ? '' : $script_dir;
+            // $script_dir = trim($script_dir, '/'); // Original logic trimmed here, let's test without for preg_quote
+            $relative_uri = preg_replace('#^'.preg_quote($script_dir, '#').'#', '', $fullRequestUri);
+            $uri = trim($relative_uri, '/');
         }
 
-        // The $this->basePathToIgnore passed to constructor is another layer.
-        // If it was provided (e.g. if index.php is at root but still handles a /prefix/ segment itself)
-        if ($this->basePathToIgnore !== '' && strpos($uri, $this->basePathToIgnore) === 0) {
-            $uri = trim(substr($uri, strlen($this->basePathToIgnore)), '/');
-        }
+        echo "<fieldset style='border:2px solid blue; padding:10px; margin:10px;'>";
+        echo "<legend>DEBUG: Router::dispatch()</legend>";
+        echo "Attempting to dispatch URI: '" . htmlspecialchars($uri) . "'<br>";
+        echo "Request Method: " . htmlspecialchars($method) . "<br>";
+        echo "Base Path To Ignore (Router constructor): '" . htmlspecialchars($this->basePathToIgnore) . "'<br>"; // From constructor
+        echo "Full Request URI (from \$_SERVER): '" . htmlspecialchars($fullRequestUri) . "'<br>";
+        echo "PATH_INFO (from \$_SERVER): '" . htmlspecialchars($path_info ?? 'NOT SET') . "'<br>";
+        echo "SCRIPT_NAME (from \$_SERVER): '" . htmlspecialchars($_SERVER['SCRIPT_NAME'] ?? 'NOT SET') . "'<br>";
 
 
         if (isset($this->routes[$method][$uri])) {
+            echo "DEBUG_Router: Handler FOUND for method '{$method}' and URI '{$uri}'.<br>";
             $handler = $this->routes[$method][$uri];
+
             if (is_array($handler) && count($handler) === 2) {
                 $controllerClass = $handler[0];
                 $action = $handler[1];
+                echo "DEBUG_Router: Handler is Controller: " . htmlspecialchars($controllerClass) . ", Action: " . htmlspecialchars($action) . "<br>";
+
                 if (class_exists($controllerClass)) {
+                    echo "DEBUG_Router: Controller class '" . htmlspecialchars($controllerClass) . "' EXISTS.<br>";
                     $controller = new $controllerClass();
                     if (method_exists($controller, $action)) {
-                        $controller->$action(); return;
-                    } else { throw new \Exception("Method {$action} not found in controller {$controllerClass}"); }
-                } else { throw new \Exception("Controller class {$controllerClass} not found"); }
-            } elseif (is_callable($handler)) { call_user_func($handler); return; }
+                        echo "DEBUG_Router: Method '" . htmlspecialchars($action) . "' EXISTS in controller. Calling it...<br>";
+                        echo "</fieldset>"; // Close fieldset before controller output
+                        $controller->$action(); // Call the action
+                        return;
+                    } else {
+                        echo "DEBUG_Router_Error: Method {$action} not found in controller {$controllerClass}<br>";
+                        // throw new \Exception("Method {$action} not found in controller {$controllerClass}");
+                    }
+                } else {
+                    echo "DEBUG_Router_Error: Controller class {$controllerClass} not found<br>";
+                    // throw new \Exception("Controller class {$controllerClass} not found");
+                }
+            } elseif (is_callable($handler)) {
+                echo "DEBUG_Router: Handler is a callable. Calling it...<br>";
+                echo "</fieldset>"; // Close fieldset before callable output
+                call_user_func($handler);
+                return;
+            }
+        } else {
+            echo "DEBUG_Router_Error: No handler FOUND for method '{$method}' and URI '{$uri}'.<br>";
+            echo "DEBUG_Router: Available routes for method '{$method}': <pre>";
+            print_r(array_keys($this->routes[$method] ?? []));
+            echo "</pre><br>";
         }
+        echo "</fieldset>"; // Ensure fieldset is closed if no route found or error in handler structure
 
-        http_response_code(404);
-        echo "<h1>404 Not Found</h1><p>The page you requested could not be found.</p>";
-        echo "<ul>";
-        echo "<li>Method: " . htmlspecialchars($method) . "</li>";
-        echo "<li>URI for matching: '" . htmlspecialchars($uri) . "'</li>";
-        echo "<li>Full Request URI Path: '/" . htmlspecialchars($fullRequestUriPath) . "'</li>";
-        echo "<li>Script Directory Path: '" . htmlspecialchars($scriptDirPath) . "'</li>";
-        echo "<li>Base Path To Ignore (Router constructor): '" . htmlspecialchars($this->basePathToIgnore) . "'</li>";
-        echo "<li>Routes available for method {$method}: <pre>" . print_r(array_keys($this->routes[$method] ?? []), true) . "</pre></li>";
-        echo "</ul>";
+        // Basic 404 if no route matched and executed
+        if (!headers_sent()) { // Check if controller action already sent output
+             http_response_code(404);
+        }
+        echo "<h1>404 Not Found (Router Fallback)</h1><p>The page you requested could not be found.</p>";
+        // echo "<p>URI for matching: " . htmlspecialchars($uri) . "</p>";
+        // echo "<p>Full Request URI: " . htmlspecialchars($fullRequestUri) . "</p>";
+        // echo "<p>Routes available for method {$method}: <pre>" . print_r(array_keys($this->routes[$method] ?? []), true) . "</pre></p>";
     }
 }
 ?>
