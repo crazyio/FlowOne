@@ -1,6 +1,6 @@
 <div class="login-box">
     <h2>Login to Flow One</h2>
-    <form action="/login" method="POST"> <!-- Action URL to be handled by router -->
+    <form action="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/login" method="POST"> <!-- Action URL to be handled by router -->
         <div class="form-group">
             <label for="email">Email</label>
             <input type="email" id="email" name="email" required>
