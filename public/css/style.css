@@ -1,0 +1,255 @@
+/* public/css/style.css */
+
+/* 1. Basic Resets and Defaults */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    background-color: #f0f2f5; /* Light grey background, common in many admin UIs */
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+a {
+    color: #007aff; /* iOS blue */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* 2. Layout Styling - app.php */
+.app-container {
+    display: flex;
+    flex-template-columns: 240px 1fr; /* Sidebar width and main content */
+    flex-template-rows: auto 1fr auto; /* Header, content, footer */
+    min-height: 100vh;
+    width: 100%;
+}
+
+.app-header {
+    grid-column: 1 / -1; /* Span across all columns */
+    background-color: #ffffff;
+    padding: 0 20px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #d1d1d6; /* Light grey border */
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.app-header .logo {
+    font-size: 1.5em;
+    font-weight: 600;
+    color: #007aff; /* iOS blue */
+}
+
+.app-header .user-menu span {
+    margin-right: 10px;
+}
+
+.app-sidebar {
+    background-color: #ffffff;
+    padding: 20px;
+    border-right: 1px solid #d1d1d6;
+    width: 240px;
+    position: fixed;
+    top: 60px; /* Below header */
+    bottom: 0;
+    left: 0;
+    overflow-y: auto;
+}
+
+.app-sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.app-sidebar ul li a {
+    display: block;
+    padding: 10px 15px;
+    color: #333;
+    border-radius: 6px; /* iOS like rounded corners */
+    margin-bottom: 5px;
+}
+
+.app-sidebar ul li a:hover,
+.app-sidebar ul li a.active {
+    background-color: #eef6ff; /* Light blue background for hover/active */
+    color: #007aff;
+}
+
+.app-content {
+    flex-grow: 1;
+    padding: 20px;
+    background-color: #f0f2f5; /* Main content area background */
+    margin-top: 60px; /* Account for fixed header */
+    margin-left: 240px; /* Account for fixed sidebar */
+}
+
+.app-footer {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border-top: 1px solid #d1d1d6;
+    font-size: 0.9em;
+    color: #666;
+    margin-left: 240px; /* Account for fixed sidebar if content doesn't push it */
+}
+
+/* Adjustments for when sidebar is collapsed (to be implemented with JS) */
+/*
+.app-container.sidebar-collapsed .app-sidebar { display: none; }
+.app-container.sidebar-collapsed .app-content { margin-left: 0; }
+.app-container.sidebar-collapsed .app-footer { margin-left: 0; }
+*/
+
+
+/* 3. Guest Layout Styling (e.g., Login Page) - guest.php */
+.guest-layout {
+    background-color: #007aff; /* iOS blue background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-grow: 1; /* Takes full height if body is flex container */
+}
+
+.guest-container {
+    background-color: #ffffff;
+    padding: 30px 40px;
+    border-radius: 12px; /* More pronounced rounded corners */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+/* 4. Basic Element Styling (iOS Influence) */
+h1, h2, h3, h4, h5, h6 {
+    color: #1c1c1e; /* Darker text for headings */
+    margin-bottom: 0.75em;
+    font-weight: 600;
+}
+
+h2 { font-size: 1.8em; }
+
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1em;
+    border-radius: 8px; /* iOS like rounded corners */
+    cursor: pointer;
+    text-align: center;
+    border: none;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.btn-primary {
+    background-color: #007aff; /* iOS blue */
+    color: #ffffff;
+    border: 1px solid #007aff;
+}
+
+.btn-primary:hover {
+    background-color: #005ecb; /* Darker blue on hover */
+    border-color: #005ecb;
+}
+
+.btn-secondary {
+    background-color: #e5e5ea; /* Light grey */
+    color: #007aff; /* Blue text */
+    border: 1px solid #e5e5ea;
+}
+.btn-secondary:hover {
+    background-color: #d1d1d6;
+}
+
+
+/* Form Styling */
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #3c3c43; /* Slightly lighter text for labels */
+    font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #c7c7cc; /* Light grey border for inputs */
+    border-radius: 8px; /* iOS like rounded corners */
+    font-size: 1em;
+    background-color: #f9f9f9; /* Very light off-white for input background */
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    border-color: #007aff; /* Blue border on focus */
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2); /* Subtle glow on focus */
+}
+
+.form-group input[type="checkbox"] {
+    margin-right: 8px;
+    vertical-align: middle;
+}
+.form-group input[type="checkbox"] + label {
+    display: inline;
+    font-weight: normal;
+}
+
+
+/* Login Box Specifics (from login.php structure) */
+.login-box {
+    /* Uses .guest-container styles */
+}
+.login-box h2 {
+    margin-bottom: 25px;
+    font-weight: 500; /* Slightly less bold for login title */
+    color: #1c1c1e;
+}
+.login-box .form-group {
+    margin-bottom: 15px;
+}
+.login-box button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    font-size: 1.1em;
+}
+.login-box p {
+    margin-top: 20px;
+    font-size: 0.9em;
+}
