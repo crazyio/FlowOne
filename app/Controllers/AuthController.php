@@ -4,28 +4,38 @@ namespace App\Controllers;
 use App\Models\User;
 use App\Core\Session;
 
-// Assuming VIEWS_PATH and DS are defined globally (e.g. in index.php)
-// and BASE_URL_SEGMENT_FOR_LINKS (renamed to BASE_URL_SEGMENT in prev step) is also defined.
-
 class AuthController {
 
     protected function renderView($viewName, $layoutName, $data = []) {
-        // Session::start(); // Session is started globally in index.php, and methods in Session class also call start()
+        // Ensure critical constants are defined, providing fallbacks if necessary.
+        // These should ideally be defined once in index.php.
+        if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR); }
+        if (!defined('VIEWS_PATH')) { define('VIEWS_PATH', dirname(__DIR__, 2) . DS . 'app' . DS . 'Views'); }
+        if (!defined('BASE_URL_SEGMENT')) {
+            // This is a fallback. BASE_URL_SEGMENT should be defined in index.php
+            // based on config 'base_path_segment_for_links'.
+            // In index.php it's defined as BASE_URL_SEGMENT_FOR_LINKS. For consistency, this should align.
+            // For this specific Turn 51 code, we use BASE_URL_SEGMENT as per its own definition.
+            $configAppPath = dirname(__DIR__, 2) . DS . 'config' . DS . 'app.php';
+            if (file_exists($configAppPath)) {
+                $configApp = require $configAppPath;
+                // Assuming the config key is 'base_path_segment_for_links' as per recent changes
+                define('BASE_URL_SEGMENT', $configApp['base_path_segment_for_links'] ?? '');
+            } else {
+                define('BASE_URL_SEGMENT', ''); // Default to empty if config not found
+            }
+        }
+
         extract($data);
         $pageTitle = $data['pageTitle'] ?? 'Flow One';
-
-        // Use BASE_URL_SEGMENT_FOR_LINKS as defined in index.php
-        $appBaseLinkPath = defined('BASE_URL_SEGMENT_FOR_LINKS') ? BASE_URL_SEGMENT_FOR_LINKS : '';
-        // It should already have a leading slash or be empty.
+        $appBaseLinkPath = (BASE_URL_SEGMENT === '/' || BASE_URL_SEGMENT === '') ? '' : '/' . trim(BASE_URL_SEGMENT, '/');
 
         ob_start();
         $viewFilePath = VIEWS_PATH . DS . str_replace('.', DS, $viewName) . '.php';
         if (file_exists($viewFilePath)) {
             require $viewFilePath;
         } else {
-            ob_end_clean();
-            echo "Error: View file not found at {$viewFilePath}";
-            return;
+            echo "DEBUG_RenderView_Error: View file not found at {$viewFilePath}<br>";
         }
         $content = ob_get_clean();
 
@@ -33,14 +43,13 @@ class AuthController {
         if (file_exists($layoutFilePath)) {
             require $layoutFilePath;
         } else {
-            echo "Error: Layout file not found at {$layoutFilePath}";
+            echo "DEBUG_RenderView_Error: Layout file not found at {$layoutFilePath}<br>";
         }
     }
 
     public function showLoginForm() {
-        // Session::start(); // Handled by Session class methods
         $errorMessage = Session::getFlash('error');
-        $successMessage = Session::getFlash('success'); // For logout message, etc.
+        $successMessage = Session::getFlash('success');
 
         $this->renderView('auth.login', 'guest', [
             'pageTitle' => 'Login - Flow One',
@@ -50,53 +59,83 @@ class AuthController {
     }
 
     public function login() {
-        // Session::start(); // Handled by Session class methods
-        $appBaseLinkPath = defined('BASE_URL_SEGMENT_FOR_LINKS') ? BASE_URL_SEGMENT_FOR_LINKS : '';
+        // Fallback for BASE_URL_SEGMENT if not defined by renderView or globally (e.g. index.php)
+        if (!defined('BASE_URL_SEGMENT')) {
+            $configAppPath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'app.php';
+            if (file_exists($configAppPath)) {
+                 $configApp = require $configAppPath;
+                 define('BASE_URL_SEGMENT', $configApp['base_path_segment_for_links'] ?? '');
+            } else {
+                 define('BASE_URL_SEGMENT', '');
+            }
+        }
+        $appBaseLinkPath = (BASE_URL_SEGMENT === '/' || BASE_URL_SEGMENT === '') ? '' : '/' . trim(BASE_URL_SEGMENT, '/');
+
+        echo "DEBUG_LoginCtrl: Reached AuthController login() method.<br>";
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            // For non-POST requests, redirect to login page, possibly with an error or just silently.
-            // Or, if your router is strict, this might not even be reachable for GET.
+            echo "DEBUG_LoginCtrl: Not a POST request. Redirecting.<br>";
             header('Location: ' . $appBaseLinkPath . '/login');
             exit;
         }
+        echo "DEBUG_LoginCtrl: Is a POST request.<br>";
+        echo "DEBUG_LoginCtrl: POST Data: <pre>"; var_dump($_POST); echo "</pre><br>";
 
         $email = $_POST['email'] ?? null;
-        $password_input = $_POST['password'] ?? null; // Renamed to avoid confusion with $user->password
+        $password = $_POST['password'] ?? null;
 
-        if (empty($email) || empty($password_input)) {
+        echo "DEBUG_LoginCtrl: Email from POST: '" . htmlspecialchars($email ?? 'NULL') . "'<br>";
+        echo "DEBUG_LoginCtrl: Password from POST: '" . (empty($password) ? 'EMPTY' : 'PROVIDED (not shown)') . "'<br>";
+
+        if (empty($email) || empty($password)) {
+            echo "DEBUG_LoginCtrl: Email or password empty. Setting flash and redirecting.<br>";
             Session::flash('error', 'Email and password are required.');
             header('Location: ' . $appBaseLinkPath . '/login');
             exit;
         }
+        echo "DEBUG_LoginCtrl: Email and password provided. Attempting User::findByEmail...<br>";
 
         $user = User::findByEmail($email);
 
         if ($user) {
-            // Verify hashed password
-            if (password_verify($password_input, $user->password)) { // Use password_verify()
-                Session::regenerateId(true); // Regenerate session ID for security
+            echo "DEBUG_LoginCtrl: User found by email. User Object: <pre>"; var_dump($user); echo "</pre><br>";
+            echo "DEBUG_LoginCtrl: Comparing provided password with stored hash: " . htmlspecialchars($user->password) . "<br>";
+            if (password_verify($password, $user->password)) {
+                echo "DEBUG_LoginCtrl: Password VERIFIED. Logging in and redirecting to dashboard...<br>";
+                Session::regenerateId(true);
                 Session::set('user_id', $user->id);
-                // Ensure 'role_id' and 'name' are selected by findByEmail if they exist on the $user object
-                // User model properties suggest they should be if User::findByEmail returns a full user object
-                Session::set('user_role_id', $user->role_id ?? null);
-                Session::set('user_name', $user->name ?? 'User');
-
-                // Redirect to a dashboard page (assuming /dashboard route will exist)
+                Session::set('user_role_id', $user->role_id);
+                Session::set('user_name', $user->name);
                 header('Location: ' . $appBaseLinkPath . '/dashboard');
                 exit;
+            } else {
+                echo "DEBUG_LoginCtrl: Password verification FAILED.<br>";
             }
+        } else {
+            echo "DEBUG_LoginCtrl: User NOT found by email: '" . htmlspecialchars($email ?? 'NULL') . "'<br>";
         }
 
+        echo "DEBUG_LoginCtrl: Login failed (either user not found or password incorrect). Setting flash and redirecting to login.<br>";
         Session::flash('error', 'Invalid email or password.');
         header('Location: ' . $appBaseLinkPath . '/login');
         exit;
     }
 
     public function logout() {
-        // Session::start(); // Handled by Session class methods
-        Session::destroy();
-        $appBaseLinkPath = defined('BASE_URL_SEGMENT_FOR_LINKS') ? BASE_URL_SEGMENT_FOR_LINKS : '';
+        Session::destroy(); // This also calls Session::start() internally
         Session::flash('success', 'You have been logged out successfully.');
+
+        if (!defined('BASE_URL_SEGMENT')) {
+             $configAppPath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'app.php';
+            if (file_exists($configAppPath)) {
+                 $configApp = require $configAppPath;
+                 define('BASE_URL_SEGMENT', $configApp['base_path_segment_for_links'] ?? '');
+            } else {
+                 define('BASE_URL_SEGMENT', '');
+            }
+        }
+        $appBaseLinkPath = (BASE_URL_SEGMENT === '/' || BASE_URL_SEGMENT === '') ? '' : '/' . trim(BASE_URL_SEGMENT, '/');
+
         header('Location: ' . $appBaseLinkPath . '/login');
         exit;
     }
