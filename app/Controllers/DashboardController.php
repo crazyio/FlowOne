@@ -55,11 +55,21 @@ class DashboardController {
         $userName = Session::get('user_name', 'User');
         $userRoleId = Session::get('user_role_id');
 
-        $this->renderView('dashboard.index', 'app', [
-            'pageTitle' => 'Dashboard',
-            'userName' => $userName,
-            'userRoleId' => $userRoleId
-        ]);
+        if ($userRoleId == 3) {
+            // For client users (role_id 3)
+            $this->renderView('dashboard.client_index', 'client', [
+                'pageTitle' => 'Client Dashboard',
+                'userName' => $userName,
+                'userRoleId' => $userRoleId
+            ]);
+        } else {
+            // For other users
+            $this->renderView('dashboard.index', 'app', [
+                'pageTitle' => 'Dashboard',
+                'userName' => $userName,
+                'userRoleId' => $userRoleId
+            ]);
+        }
     }
 }
 ?>

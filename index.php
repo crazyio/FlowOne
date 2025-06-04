@@ -65,6 +65,15 @@ $router->addRoute('GET', '/logout', [AuthController::class, 'logout']); // Logou
 $router->addRoute('GET', '/', [AuthController::class, 'showLoginForm']); // Default to login
 $router->addRoute('GET', '/dashboard', [DashboardController::class, 'index']); // Dashboard route
 
+// Client Workspace Specific Routes
+$router->addRoute('GET', '/client/settings', [\App\Controllers\ClientSettingsController::class, 'index']);
+$router->addRoute('GET', '/client/trainees', [\App\Controllers\ClientTraineesController::class, 'index']);
+$router->addRoute('GET', '/client/trainings', [\App\Controllers\ClientTrainingsController::class, 'index']);
+$router->addRoute('GET', '/client/exercises', [\App\Controllers\ClientExercisesController::class, 'index']);
+$router->addRoute('GET', '/client/forum', [\App\Controllers\ClientForumController::class, 'index']);
+$router->addRoute('GET', '/client/playlist', [\App\Controllers\ClientPlayListController::class, 'index']);
+$router->addRoute('GET', '/client/shop', [\App\Controllers\ClientShopController::class, 'index']);
+
 // The block for simulating $_SERVER variables has been removed.
 // The application will now rely on the actual $_SERVER variables provided by the web server
 // (or the command line environment if run via CLI, though that's not its primary execution mode).
