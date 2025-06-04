@@ -75,6 +75,8 @@ class AuthController {
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             echo "DEBUG_LoginCtrl: Not a POST request. Redirecting.<br>";
+            if (ob_get_level() > 0) { ob_flush(); }
+            flush();
             header('Location: ' . $appBaseLinkPath . '/login');
             exit;
         }
@@ -90,6 +92,8 @@ class AuthController {
         if (empty($email) || empty($password)) {
             echo "DEBUG_LoginCtrl: Email or password empty. Setting flash and redirecting.<br>";
             Session::flash('error', 'Email and password are required.');
+            if (ob_get_level() > 0) { ob_flush(); }
+            flush();
             header('Location: ' . $appBaseLinkPath . '/login');
             exit;
         }
@@ -106,6 +110,8 @@ class AuthController {
                 Session::set('user_id', $user->id);
                 Session::set('user_role_id', $user->role_id);
                 Session::set('user_name', $user->name);
+                if (ob_get_level() > 0) { ob_flush(); }
+                flush();
                 header('Location: ' . $appBaseLinkPath . '/dashboard');
                 exit;
             } else {
@@ -117,6 +123,8 @@ class AuthController {
 
         echo "DEBUG_LoginCtrl: Login failed (either user not found or password incorrect). Setting flash and redirecting to login.<br>";
         Session::flash('error', 'Invalid email or password.');
+        if (ob_get_level() > 0) { ob_flush(); }
+        flush();
         header('Location: ' . $appBaseLinkPath . '/login');
         exit;
     }
