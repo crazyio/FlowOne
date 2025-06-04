@@ -104,6 +104,8 @@ class AuthController {
         if ($user) {
             echo "DEBUG_LoginCtrl: User found by email. User Object: <pre>"; var_dump($user); echo "</pre><br>";
             echo "DEBUG_LoginCtrl: Comparing provided password with stored hash: " . htmlspecialchars($user->password) . "<br>";
+            echo "DEBUG_LoginCtrl: Raw Password from POST (length " . strlen($password) . "): <pre>"; var_dump($password); echo "</pre><br>";
+            echo "DEBUG_LoginCtrl: User Hash from DB (length " . strlen($user->password) . "): <pre>"; var_dump($user->password); echo "</pre><br>";
             if (password_verify($password, $user->password)) {
                 echo "DEBUG_LoginCtrl: Password VERIFIED. Logging in and redirecting to dashboard...<br>";
                 Session::regenerateId(true);
