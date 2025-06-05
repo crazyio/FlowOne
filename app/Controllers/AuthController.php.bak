@@ -35,7 +35,7 @@ class AuthController {
         if (file_exists($viewFilePath)) {
             require $viewFilePath;
         } else {
-// echo "DEBUG_RenderView_Error: View file not found at {$viewFilePath}<br>";
+            echo "DEBUG_RenderView_Error: View file not found at {$viewFilePath}<br>";
         }
         $content = ob_get_clean();
 
@@ -43,7 +43,7 @@ class AuthController {
         if (file_exists($layoutFilePath)) {
             require $layoutFilePath;
         } else {
-// echo "DEBUG_RenderView_Error: Layout file not found at {$layoutFilePath}<br>";
+            echo "DEBUG_RenderView_Error: Layout file not found at {$layoutFilePath}<br>";
         }
     }
 
@@ -71,63 +71,63 @@ class AuthController {
         }
         $appBaseLinkPath = (BASE_URL_SEGMENT === '/' || BASE_URL_SEGMENT === '') ? '' : '/' . trim(BASE_URL_SEGMENT, '/');
 
-// echo "DEBUG_LoginCtrl: Reached AuthController login() method.<br>";
+        echo "DEBUG_LoginCtrl: Reached AuthController login() method.<br>";
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-// echo "DEBUG_LoginCtrl: Not a POST request. Redirecting.<br>";
+            echo "DEBUG_LoginCtrl: Not a POST request. Redirecting.<br>";
             if (ob_get_level() > 0) { ob_flush(); }
-// flush();
+            flush();
             header('Location: ' . $appBaseLinkPath . '/login');
             exit;
         }
-// echo "DEBUG_LoginCtrl: Is a POST request.<br>";
-// echo "DEBUG_LoginCtrl: POST Data: <pre>"; var_dump($_POST); echo "</pre><br>";
+        echo "DEBUG_LoginCtrl: Is a POST request.<br>";
+        echo "DEBUG_LoginCtrl: POST Data: <pre>"; var_dump($_POST); echo "</pre><br>";
 
         $email = $_POST['email'] ?? null;
         $password = $_POST['password'] ?? null;
 
-// echo "DEBUG_LoginCtrl: Email from POST: '" . htmlspecialchars($email ?? 'NULL') . "'<br>";
-// echo "DEBUG_LoginCtrl: Password from POST: '" . (empty($password) ? 'EMPTY' : 'PROVIDED (not shown)') . "'<br>";
+        echo "DEBUG_LoginCtrl: Email from POST: '" . htmlspecialchars($email ?? 'NULL') . "'<br>";
+        echo "DEBUG_LoginCtrl: Password from POST: '" . (empty($password) ? 'EMPTY' : 'PROVIDED (not shown)') . "'<br>";
 
         if (empty($email) || empty($password)) {
-// echo "DEBUG_LoginCtrl: Email or password empty. Setting flash and redirecting.<br>";
+            echo "DEBUG_LoginCtrl: Email or password empty. Setting flash and redirecting.<br>";
             Session::flash('error', 'Email and password are required.');
             if (ob_get_level() > 0) { ob_flush(); }
-// flush();
+            flush();
             header('Location: ' . $appBaseLinkPath . '/login');
             exit;
         }
-// echo "DEBUG_LoginCtrl: Email and password provided. Attempting User::findByEmail...<br>";
+        echo "DEBUG_LoginCtrl: Email and password provided. Attempting User::findByEmail...<br>";
 
         $user = User::findByEmail($email);
 
         if ($user) {
-// echo "DEBUG_LoginCtrl: User found by email. User Object: <pre>"; var_dump($user); echo "</pre><br>";
+            echo "DEBUG_LoginCtrl: User found by email. User Object: <pre>"; var_dump($user); echo "</pre><br>";
             $db_hash = (string) $user->password;
-// echo "DEBUG_LoginCtrl: Comparing provided password with stored hash: " . htmlspecialchars($db_hash) . "<br>";
-// echo "DEBUG_LoginCtrl: Raw Password from POST (length " . strlen($password) . "): <pre>"; var_dump($password); echo "</pre><br>";
-// echo "DEBUG_LoginCtrl: User Hash from DB (length " . strlen($db_hash) . "): <pre>"; var_dump($db_hash); echo "</pre><br>";
+            echo "DEBUG_LoginCtrl: Comparing provided password with stored hash: " . htmlspecialchars($db_hash) . "<br>";
+            echo "DEBUG_LoginCtrl: Raw Password from POST (length " . strlen($password) . "): <pre>"; var_dump($password); echo "</pre><br>";
+            echo "DEBUG_LoginCtrl: User Hash from DB (length " . strlen($db_hash) . "): <pre>"; var_dump($db_hash); echo "</pre><br>";
             if (password_verify($password, $db_hash)) {
-// echo "DEBUG_LoginCtrl: Password VERIFIED. Logging in and redirecting to dashboard...<br>";
+                echo "DEBUG_LoginCtrl: Password VERIFIED. Logging in and redirecting to dashboard...<br>";
                 Session::regenerateId(true);
                 Session::set('user_id', $user->id);
                 Session::set('user_role_id', $user->role_id);
                 Session::set('user_name', $user->name);
                 if (ob_get_level() > 0) { ob_flush(); }
-// flush();
+                flush();
                 header('Location: ' . $appBaseLinkPath . '/dashboard');
                 exit;
             } else {
-// echo "DEBUG_LoginCtrl: Password verification FAILED.<br>";
+                echo "DEBUG_LoginCtrl: Password verification FAILED.<br>";
             }
         } else {
-// echo "DEBUG_LoginCtrl: User NOT found by email: '" . htmlspecialchars($email ?? 'NULL') . "'<br>";
+            echo "DEBUG_LoginCtrl: User NOT found by email: '" . htmlspecialchars($email ?? 'NULL') . "'<br>";
         }
 
-// echo "DEBUG_LoginCtrl: Login failed (either user not found or password incorrect). Setting flash and redirecting to login.<br>";
+        echo "DEBUG_LoginCtrl: Login failed (either user not found or password incorrect). Setting flash and redirecting to login.<br>";
         Session::flash('error', 'Invalid email or password.');
         if (ob_get_level() > 0) { ob_flush(); }
-// flush();
+        flush();
         header('Location: ' . $appBaseLinkPath . '/login');
         exit;
     }
