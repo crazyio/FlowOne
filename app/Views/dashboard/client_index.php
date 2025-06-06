@@ -1,3 +1,4 @@
+
 <?php
 // app/Views/dashboard/client_index.php
 // This view will be rendered within the 'client' layout.
@@ -12,3 +13,4 @@
     </div>
     <p><em>(Placeholder content for the client dashboard)</em></p>
 </div>
+
