@@ -51,6 +51,7 @@ class Router {
             }
         }
 
+
         echo "<fieldset style='border:2px solid blue; padding:10px; margin:10px;'>";
         echo "<legend>DEBUG: Router::dispatch()</legend>";
         echo "Attempting to dispatch URI: '" . htmlspecialchars($uri) . "'<br>";
@@ -63,11 +64,13 @@ class Router {
 
         if (isset($this->routes[$method][$uri])) {
             echo "DEBUG_Router: Handler FOUND for method '{$method}' and URI '{$uri}'.<br>";
+
             $handler = $this->routes[$method][$uri];
 
             if (is_array($handler) && count($handler) === 2) {
                 $controllerClass = $handler[0];
                 $action = $handler[1];
+
                 echo "DEBUG_Router: Handler is Controller: " . htmlspecialchars($controllerClass) . ", Action: " . htmlspecialchars($action) . "<br>";
 
                 if (class_exists($controllerClass)) {
@@ -97,17 +100,19 @@ class Router {
             echo "DEBUG_Router: Available routes for method '{$method}': <pre>";
             print_r(array_keys($this->routes[$method] ?? []));
             echo "</pre><br>";
+
         }
-        echo "</fieldset>"; // Ensure fieldset is closed if no route found or error in handler structure
 
         // Basic 404 if no route matched and executed
         if (!headers_sent()) { // Check if controller action already sent output
              http_response_code(404);
         }
+
         echo "<h1>404 Not Found (Router Fallback)</h1><p>The page you requested could not be found.</p>";
         // echo "<p>URI for matching: " . htmlspecialchars($uri) . "</p>";
         // echo "<p>Full Request URI: " . htmlspecialchars($fullRequestUri) . "</p>";
         // echo "<p>Routes available for method {$method}: <pre>" . print_r(array_keys($this->routes[$method] ?? []), true) . "</pre></p>";
+
     }
 }
 ?>
