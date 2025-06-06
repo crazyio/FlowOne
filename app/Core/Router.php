@@ -51,63 +51,42 @@ class Router {
             }
         }
 
-//         echo "<fieldset style='border:2px solid blue; padding:10px; margin:10px;'>";
-//         echo "<legend>DEBUG: Router::dispatch()</legend>";
-//         echo "Attempting to dispatch URI: '" . htmlspecialchars($uri) . "'<br>";
-//         echo "Request Method: " . htmlspecialchars($method) . "<br>";
-//         echo "Base Path To Ignore (Router constructor): '" . htmlspecialchars($this->basePathToIgnore) . "'<br>"; // From constructor
-//         echo "Full Request URI (from \$_SERVER): '" . htmlspecialchars($fullRequestUri) . "'<br>";
-//         echo "PATH_INFO (from \$_SERVER): '" . htmlspecialchars($path_info ?? 'NOT SET') . "'<br>";
-//         echo "SCRIPT_NAME (from \$_SERVER): '" . htmlspecialchars($_SERVER['SCRIPT_NAME'] ?? 'NOT SET') . "'<br>";
-//
-//
-//         if (isset($this->routes[$method][$uri])) {
-//             echo "DEBUG_Router: Handler FOUND for method '{$method}' and URI '{$uri}'.<br>";
-//             $handler = $this->routes[$method][$uri];
-//
-//             if (is_array($handler) && count($handler) === 2) {
-//                 $controllerClass = $handler[0];
-//                 $action = $handler[1];
-//                 echo "DEBUG_Router: Handler is Controller: " . htmlspecialchars($controllerClass) . ", Action: " . htmlspecialchars($action) . "<br>";
-//
-//                 if (class_exists($controllerClass)) {
-//                     echo "DEBUG_Router: Controller class '" . htmlspecialchars($controllerClass) . "' EXISTS.<br>";
-//                     $controller = new $controllerClass();
-//                     if (method_exists($controller, $action)) {
-//                         echo "DEBUG_Router: Method '" . htmlspecialchars($action) . "' EXISTS in controller. Calling it...<br>";
-//                         echo "</fieldset>"; // Close fieldset before controller output
+
+        if (isset($this->routes[$method][$uri])) {
+            $handler = $this->routes[$method][$uri];
+
+            if (is_array($handler) && count($handler) === 2) {
+                $controllerClass = $handler[0];
+                $action = $handler[1];
+
+                if (class_exists($controllerClass)) {
+                    $controller = new $controllerClass();
+                    if (method_exists($controller, $action)) {
                         $controller->$action(); // Call the action
                         return;
                     } else {
-// echo "DEBUG_Router_Error: Method {$action} not found in controller {$controllerClass}<br>";
-                        // throw new \Exception("Method {$action} not found in controller {$controllerClass}");
+                        // Consider logging this error instead of echo, or throwing an exception
+                        // echo "DEBUG_Router_Error: Method {$action} not found in controller {$controllerClass}<br>";
                     }
                 } else {
-// echo "DEBUG_Router_Error: Controller class {$controllerClass} not found<br>";
-                    // throw new \Exception("Controller class {$controllerClass} not found");
+                    // Consider logging this error
+                    // echo "DEBUG_Router_Error: Controller class {$controllerClass} not found<br>";
                 }
             } elseif (is_callable($handler)) {
-// echo "DEBUG_Router: Handler is a callable. Calling it...<br>";
-                echo "</fieldset>"; // Close fieldset before callable output
                 call_user_func($handler);
                 return;
             }
-        } else {
-// echo "DEBUG_Router_Error: No handler FOUND for method '{$method}' and URI '{$uri}'.<br>";
-// echo "DEBUG_Router: Available routes for method '{$method}': <pre>";
-            print_r(array_keys($this->routes[$method] ?? []));
-            echo "</pre><br>";
+
         }
-        echo "</fieldset>"; // Ensure fieldset is closed if no route found or error in handler structure
 
         // Basic 404 if no route matched and executed
         if (!headers_sent()) { // Check if controller action already sent output
              http_response_code(404);
         }
-// echo "<h1>404 Not Found (Router Fallback)</h1><p>The page you requested could not be found.</p>";
-        // echo "<p>URI for matching: " . htmlspecialchars($uri) . "</p>";
-        // echo "<p>Full Request URI: " . htmlspecialchars($fullRequestUri) . "</p>";
-        // echo "<p>Routes available for method {$method}: <pre>" . print_r(array_keys($this->routes[$method] ?? []), true) . "</pre></p>";
+
+        // You might want to render a dedicated 404 view here instead of echoing HTML directly
+        echo "<h1>404 Not Found</h1><p>The page you requested could not be found.</p>";
+
     }
 }
 ?>
