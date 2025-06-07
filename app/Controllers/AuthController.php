@@ -90,13 +90,9 @@ class AuthController {
 
         if ($user) {
 
+
             $db_hash = (string) $user->password;
             if (password_verify($password, $db_hash)) {
-
-                Session::regenerateId(true);
-                Session::set('user_id', $user->id);
-                Session::set('user_role_id', $user->role_id);
-                Session::set('user_name', $user->name);
 
                 header('Location: ' . $appBaseLinkPath . '/dashboard');
                 exit;

@@ -65,7 +65,6 @@ $router->addRoute('GET', '/logout', [AuthController::class, 'logout']); // Logou
 $router->addRoute('GET', '/', [AuthController::class, 'showLoginForm']); // Default to login
 $router->addRoute('GET', '/dashboard', [DashboardController::class, 'index']); // Dashboard route
 
-
 // Client Workspace Specific Routes
 $router->addRoute('GET', '/client/settings', [\App\Controllers\ClientSettingsController::class, 'index']);
 $router->addRoute('GET', '/client/trainees', [\App\Controllers\ClientTraineesController::class, 'index']);
