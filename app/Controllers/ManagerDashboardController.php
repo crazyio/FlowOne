@@ -72,24 +72,47 @@ class ManagerDashboardController {
         try {
             $db = Database::getInstance()->getConnection();
             
-            $stmt = $db->prepare("
+            // Debug: First check if we have any clients at all for this user
+            $debugStmt = $db->prepare("SELECT COUNT(*) as count FROM clients WHERE assigned_to_user_id = :user_id");
+            $debugStmt->execute(['user_id' => $userId]);
+            $clientCount = $debugStmt->fetch(PDO::FETCH_ASSOC);
+            error_log("Debug: Manager $userId has {$clientCount['count']} assigned clients");
+            
+            // Get client statistics
+            $clientStmt = $db->prepare("
                 SELECT 
-                    COUNT(DISTINCT c.id) as total_clients,
-                    COUNT(DISTINCT CASE WHEN c.status = 'active' THEN c.id END) as active_clients,
-                    COUNT(DISTINCT CASE WHEN c.status = 'prospect' THEN c.id END) as prospect_clients,
-                    COUNT(t.id) as total_tasks,
+                    COUNT(*) as total_clients,
+                    COUNT(CASE WHEN status = 'active' THEN 1 END) as active_clients,
+                    COUNT(CASE WHEN status = 'prospect' THEN 1 END) as prospect_clients,
+                    COUNT(CASE WHEN status = 'inactive' THEN 1 END) as inactive_clients
+                FROM clients 
+                WHERE assigned_to_user_id = :user_id
+            ");
+            $clientStmt->execute(['user_id' => $userId]);
+            $clientStats = $clientStmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Get task statistics
+            $taskStmt = $db->prepare("
+                SELECT 
+                    COUNT(*) as total_tasks,
                     COUNT(CASE WHEN t.status = 'To Do' THEN 1 END) as todo_tasks,
                     COUNT(CASE WHEN t.status = 'In Progress' THEN 1 END) as in_progress_tasks,
                     COUNT(CASE WHEN t.status = 'Pending Client Input' THEN 1 END) as pending_input_tasks,
                     COUNT(CASE WHEN t.status = 'Done' THEN 1 END) as completed_tasks,
                     COUNT(CASE WHEN t.due_date < CURDATE() AND t.status NOT IN ('Done', 'Cancelled') THEN 1 END) as overdue_tasks
-                FROM clients c
-                LEFT JOIN tasks t ON c.id = t.client_id
-                WHERE c.assigned_to_user_id = :user_id OR t.assigned_to_user_id = :user_id
+                FROM tasks t
+                JOIN clients c ON t.client_id = c.id
+                WHERE c.assigned_to_user_id = :user_id
             ");
-            $stmt->execute(['user_id' => $userId]);
+            $taskStmt->execute(['user_id' => $userId]);
+            $taskStats = $taskStmt->fetch(PDO::FETCH_ASSOC);
             
-            return $stmt->fetch(PDO::FETCH_ASSOC);
+            // Merge the results
+            $result = array_merge($clientStats, $taskStats);
+            
+            error_log("Debug: Manager stats - " . json_encode($result));
+            
+            return $result;
         }
         catch (Exception $e) {
             error_log("Error getting manager stats: " . $e->getMessage());
@@ -97,6 +120,7 @@ class ManagerDashboardController {
                 'total_clients' => 0,
                 'active_clients' => 0,
                 'prospect_clients' => 0,
+                'inactive_clients' => 0,
                 'total_tasks' => 0,
                 'todo_tasks' => 0,
                 'in_progress_tasks' => 0,

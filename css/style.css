@@ -102,8 +102,8 @@ img {
     flex-grow: 1;
     padding: 20px;
     background-color: #f0f2f5; /* Main content area background */
-    margin-top: 60px; /* Account for fixed header */
-    margin-left: 240px; /* Account for fixed sidebar */
+    margin-top: 0px; /* Account for fixed header */
+    margin-left: 275px; /* Account for fixed sidebar */
 }
 
 .app-footer {
@@ -116,6 +116,7 @@ img {
     color: #666;
     margin-left: 240px; /* Account for fixed sidebar if content doesn't push it */
 }
+
 
 /* Adjustments for when sidebar is collapsed (to be implemented with JS) */
 /*
