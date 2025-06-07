@@ -90,6 +90,10 @@ class AuthController {
                 Session::set('user_email', $user->email);
                 Session::set('user_role_id', $user->role_id);
                 
+                // Load user's language preference
+                $userLanguage = $user->language ?? 'en';
+                Session::set('user_language', $userLanguage);
+                
                 // Regenerate session ID for security
                 Session::regenerateId();
 

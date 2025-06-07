@@ -1,20 +1,24 @@
+<?php
+use App\Core\Language;
+Language::init();
+?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo Language::getCurrentLanguage(); ?>" dir="<?php echo Language::getDirection(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title><?php echo htmlspecialchars($pageTitle ?? 'Flow One'); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/css/style.css">
+    <link rel="stylesheet" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/css/<?php echo Language::getCSSFile(); ?>">
 </head>
-<body>
+<body class="<?php echo Language::getDirectionClass(); ?>">
     <div class="d-flex flex-column vh-100">
         <!-- Top Navbar -->
         <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
             <div class="container-fluid">
                 <a class="navbar-brand" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/dashboard">
-                    Flow One Manager
+                    <?php echo Language::get('nav.dashboard'); ?> - <?php echo Language::get('nav.manager_title', [], 'Flow One Manager'); ?>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -33,9 +37,9 @@
                                                    ?></span>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
-                                <li><a class="dropdown-item" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/manager/settings">Settings</a></li>
+                                <li><a class="dropdown-item" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/manager/settings"><?php echo Language::get('nav.settings'); ?></a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/logout">Logout</a></li>
+                                <li><a class="dropdown-item" href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/logout"><?php echo Language::get('nav.logout'); ?></a></li>
                             </ul>
                         </li>
                     </ul>
@@ -46,42 +50,42 @@
         <div class="d-flex flex-grow-1 overflow-hidden">
             <!-- Sidebar -->
             <nav class="app-sidebar bg-light border-end p-3" style="width: 280px;">
-                <h5 class="mb-3">Manager Menu</h5>
+                <h5 class="mb-3"><?php echo Language::get('nav.manager_menu', [], 'Manager Menu'); ?></h5>
                 <ul class="nav nav-pills flex-column mb-auto">
                     <li class="nav-item">
                         <a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/dashboard" class="nav-link link-dark">
                             <svg class="bi me-2" width="16" height="16"><use xlink:href="#home"/></svg>
-                            Dashboard
+                            <?php echo Language::get('nav.dashboard'); ?>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/manager/clients" class="nav-link link-dark">
                             <svg class="bi me-2" width="16" height="16"><use xlink:href="#people"/></svg>
-                            My Clients
+                            <?php echo Language::get('nav.clients'); ?>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/manager/tasks" class="nav-link link-dark">
                             <svg class="bi me-2" width="16" height="16"><use xlink:href="#clipboard-check"/></svg>
-                            Tasks
+                            <?php echo Language::get('nav.tasks'); ?>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/manager/services" class="nav-link link-dark">
                             <svg class="bi me-2" width="16" height="16"><use xlink:href="#gear"/></svg>
-                            Services
+                            <?php echo Language::get('nav.services'); ?>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/manager/documents" class="nav-link link-dark">
                             <svg class="bi me-2" width="16" height="16"><use xlink:href="#file-text"/></svg>
-                            Documents
+                            <?php echo Language::get('nav.documents'); ?>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="<?php echo htmlspecialchars($appBaseLinkPath ?? ''); ?>/manager/reports" class="nav-link link-dark">
                             <svg class="bi me-2" width="16" height="16"><use xlink:href="#graph-up"/></svg>
-                            Reports
+                            <?php echo Language::get('nav.reports'); ?>
                         </a>
                     </li>
                 </ul>

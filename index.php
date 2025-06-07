@@ -65,6 +65,8 @@ $router->addRoute('GET', '/dashboard', function() {
 });
 
 // Manager Workspace Specific Routes (Role 3)
+$router->addRoute('GET', '/manager/settings', [\App\Controllers\ManagerSettingsController::class, 'index']);
+$router->addRoute('POST', '/manager/settings', [\App\Controllers\ManagerSettingsController::class, 'update']);
 $router->addRoute('GET', '/manager/clients', [\App\Controllers\ManagerClientController::class, 'index']);
 $router->addRoute('GET', '/manager/clients/new', [\App\Controllers\ManagerClientController::class, 'create']);
 $router->addRoute('POST', '/manager/clients', [\App\Controllers\ManagerClientController::class, 'store']);
@@ -75,7 +77,6 @@ $router->addRoute('POST', '/manager/update-task-status', [\App\Controllers\Manag
 $router->addRoute('GET', '/manager/services', [\App\Controllers\ManagerServiceController::class, 'index']);
 $router->addRoute('GET', '/manager/documents', [\App\Controllers\ManagerDocumentController::class, 'index']);
 $router->addRoute('GET', '/manager/reports', [\App\Controllers\ManagerReportController::class, 'index']);
-$router->addRoute('GET', '/manager/settings', [\App\Controllers\ManagerSettingsController::class, 'index']);
 
 // If you have actual client users (not managers), you might want to add a role 4 for them
 // and create separate client routes. For now, commenting out the original client routes:

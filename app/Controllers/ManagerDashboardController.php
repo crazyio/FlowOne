@@ -75,9 +75,7 @@ class ManagerDashboardController {
             // Debug: First check if we have any clients at all for this user
             $debugStmt = $db->prepare("SELECT COUNT(*) as count FROM clients WHERE assigned_to_user_id = :user_id");
             $debugStmt->execute(['user_id' => $userId]);
-            $clientCount = $debugStmt->fetch(PDO::FETCH_ASSOC);
-            error_log("Debug: Manager $userId has {$clientCount['count']} assigned clients");
-            
+     
             // Get client statistics
             $clientStmt = $db->prepare("
                 SELECT 
@@ -109,9 +107,7 @@ class ManagerDashboardController {
             
             // Merge the results
             $result = array_merge($clientStats, $taskStats);
-            
-            error_log("Debug: Manager stats - " . json_encode($result));
-            
+           
             return $result;
         }
         catch (Exception $e) {
