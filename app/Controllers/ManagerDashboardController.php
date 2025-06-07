@@ -5,20 +5,18 @@ namespace App\Controllers;
 use App\Core\Session;
 use App\Core\Database;
 use PDO;
+use Exception;
 
-class ClientDashboardController {
+class ManagerDashboardController {
 
     protected function renderView($viewName, $layoutName, $data = []) {
         if (!defined('DS')) { define('DS', DIRECTORY_SEPARATOR); }
         if (!defined('VIEWS_PATH')) { define('VIEWS_PATH', dirname(__DIR__, 2) . DS . 'app' . DS . 'Views'); }
 
         $appBaseLinkPath = defined('BASE_URL_SEGMENT_FOR_LINKS') ? BASE_URL_SEGMENT_FOR_LINKS : '';
-        if (empty($appBaseLinkPath) && defined('BASE_URL_SEGMENT')) {
-            $appBaseLinkPath = (BASE_URL_SEGMENT === '/' || BASE_URL_SEGMENT === '') ? '' : '/' . trim(BASE_URL_SEGMENT, '/');
-        }
 
         extract($data);
-        $pageTitle = $data['pageTitle'] ?? 'Flow One Client';
+        $pageTitle = $data['pageTitle'] ?? 'Flow One Manager';
 
         ob_start();
         $viewFilePath = VIEWS_PATH . DS . str_replace('.', DS, $viewName) . '.php';
@@ -42,7 +40,7 @@ class ClientDashboardController {
         $appBaseLinkPath = defined('BASE_URL_SEGMENT_FOR_LINKS') ? BASE_URL_SEGMENT_FOR_LINKS : '';
 
         if (!Session::has('user_id') || Session::get('user_role_id') != 3) {
-            Session::flash('error', 'You must be logged in as a client to view this page.');
+            Session::flash('error', 'You must be logged in as a manager to view this page.');
             header('Location: ' . $appBaseLinkPath . '/login');
             exit;
         }
@@ -51,70 +49,54 @@ class ClientDashboardController {
         $userName = Session::get('user_name', 'User');
         $userRoleId = Session::get('user_role_id');
 
-        // Get client-specific data
-        $clientData = $this->getClientData($userId);
-        $taskStats = $this->getTaskStats($userId);
+        // Get manager-specific data
+        $managerStats = $this->getManagerStats($userId);
+        $assignedClients = $this->getAssignedClients($userId);
         $recentTasks = $this->getRecentTasks($userId);
+        $tasksByStatus = $this->getTasksByStatus($userId);
         $notifications = $this->getRecentNotifications($userId);
 
-        $this->renderView('dashboard.client_index', 'client', [
-            'pageTitle' => 'Client Dashboard',
+        $this->renderView('dashboard.manager_index', 'manager', [
+            'pageTitle' => 'Manager Dashboard',
             'userName' => $userName,
             'userRoleId' => $userRoleId,
-            'clientData' => $clientData,
-            'taskStats' => $taskStats,
+            'managerStats' => $managerStats,
+            'assignedClients' => $assignedClients,
             'recentTasks' => $recentTasks,
+            'tasksByStatus' => $tasksByStatus,
             'notifications' => $notifications
         ]);
     }
 
-    private function getClientData($userId) {
+    private function getManagerStats($userId) {
         try {
             $db = Database::getInstance()->getConnection();
             
-            // Get client information (assuming the user is also a client record)
-            $stmt = $db->prepare("
-                SELECT c.*, u.name as user_name, u.email as user_email
-                FROM clients c 
-                LEFT JOIN users u ON c.client_email = u.email 
-                WHERE u.id = :user_id 
-                LIMIT 1
-            ");
-            $stmt->execute(['user_id' => $userId]);
-            
-            return $stmt->fetch(PDO::FETCH_ASSOC);
-        }
-        catch (Exception $e) {
-            error_log("Error getting client data: " . $e->getMessage());
-            return null;
-        }
-    }
-
-    private function getTaskStats($userId) {
-        try {
-            $db = Database::getInstance()->getConnection();
-            
-            // Fixed: Specify table aliases for all columns to avoid ambiguity
             $stmt = $db->prepare("
                 SELECT 
-                    COUNT(*) as total_tasks,
-                    SUM(CASE WHEN t.status = 'To Do' THEN 1 ELSE 0 END) as todo_tasks,
-                    SUM(CASE WHEN t.status = 'In Progress' THEN 1 ELSE 0 END) as in_progress_tasks,
-                    SUM(CASE WHEN t.status = 'Pending Client Input' THEN 1 ELSE 0 END) as pending_input_tasks,
-                    SUM(CASE WHEN t.status = 'Done' THEN 1 ELSE 0 END) as completed_tasks,
-                    SUM(CASE WHEN t.due_date < CURDATE() AND t.status NOT IN ('Done', 'Cancelled') THEN 1 ELSE 0 END) as overdue_tasks
-                FROM tasks t
-                JOIN clients c ON t.client_id = c.id
-                JOIN users u ON c.client_email = u.email
-                WHERE u.id = :user_id
+                    COUNT(DISTINCT c.id) as total_clients,
+                    COUNT(DISTINCT CASE WHEN c.status = 'active' THEN c.id END) as active_clients,
+                    COUNT(DISTINCT CASE WHEN c.status = 'prospect' THEN c.id END) as prospect_clients,
+                    COUNT(t.id) as total_tasks,
+                    COUNT(CASE WHEN t.status = 'To Do' THEN 1 END) as todo_tasks,
+                    COUNT(CASE WHEN t.status = 'In Progress' THEN 1 END) as in_progress_tasks,
+                    COUNT(CASE WHEN t.status = 'Pending Client Input' THEN 1 END) as pending_input_tasks,
+                    COUNT(CASE WHEN t.status = 'Done' THEN 1 END) as completed_tasks,
+                    COUNT(CASE WHEN t.due_date < CURDATE() AND t.status NOT IN ('Done', 'Cancelled') THEN 1 END) as overdue_tasks
+                FROM clients c
+                LEFT JOIN tasks t ON c.id = t.client_id
+                WHERE c.assigned_to_user_id = :user_id OR t.assigned_to_user_id = :user_id
             ");
             $stmt->execute(['user_id' => $userId]);
             
             return $stmt->fetch(PDO::FETCH_ASSOC);
         }
         catch (Exception $e) {
-            error_log("Error getting task stats: " . $e->getMessage());
+            error_log("Error getting manager stats: " . $e->getMessage());
             return [
+                'total_clients' => 0,
+                'active_clients' => 0,
+                'prospect_clients' => 0,
                 'total_tasks' => 0,
                 'todo_tasks' => 0,
                 'in_progress_tasks' => 0,
@@ -125,24 +107,47 @@ class ClientDashboardController {
         }
     }
 
-    private function getRecentTasks($userId, $limit = 5) {
+    private function getAssignedClients($userId, $limit = 10) {
         try {
             $db = Database::getInstance()->getConnection();
             
-            // Fixed: Specify table aliases for all columns
             $stmt = $db->prepare("
-                SELECT t.id, t.task_title, t.task_description, t.status as task_status, 
-                       t.priority, t.due_date, t.created_at, t.updated_at,
-                       s.service_name, 
-                       u_assigned.name as assigned_to_name,
+                SELECT c.*, 
+                       COUNT(t.id) as total_tasks,
+                       COUNT(CASE WHEN t.status NOT IN ('Done', 'Cancelled') THEN 1 END) as active_tasks,
+                       COUNT(CASE WHEN t.due_date < CURDATE() AND t.status NOT IN ('Done', 'Cancelled') THEN 1 END) as overdue_tasks
+                FROM clients c
+                LEFT JOIN tasks t ON c.id = t.client_id
+                WHERE c.assigned_to_user_id = :user_id
+                GROUP BY c.id
+                ORDER BY c.updated_at DESC
+                LIMIT :limit
+            ");
+            $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+            $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+            $stmt->execute();
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        catch (Exception $e) {
+            error_log("Error getting assigned clients: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function getRecentTasks($userId, $limit = 10) {
+        try {
+            $db = Database::getInstance()->getConnection();
+            
+            $stmt = $db->prepare("
+                SELECT t.*, c.client_name, c.company_name,
+                       s.service_name,
                        DATEDIFF(t.due_date, CURDATE()) as days_until_due
                 FROM tasks t
                 JOIN clients c ON t.client_id = c.id
-                JOIN users u ON c.client_email = u.email
                 LEFT JOIN services s ON t.service_id = s.id
-                LEFT JOIN users u_assigned ON t.assigned_to_user_id = u_assigned.id
-                WHERE u.id = :user_id
-                ORDER BY t.created_at DESC
+                WHERE t.assigned_to_user_id = :user_id OR c.assigned_to_user_id = :user_id
+                ORDER BY t.updated_at DESC
                 LIMIT :limit
             ");
             $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
@@ -153,6 +158,28 @@ class ClientDashboardController {
         }
         catch (Exception $e) {
             error_log("Error getting recent tasks: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    private function getTasksByStatus($userId) {
+        try {
+            $db = Database::getInstance()->getConnection();
+            
+            $stmt = $db->prepare("
+                SELECT t.status, COUNT(*) as count
+                FROM tasks t
+                JOIN clients c ON t.client_id = c.id
+                WHERE t.assigned_to_user_id = :user_id OR c.assigned_to_user_id = :user_id
+                GROUP BY t.status
+                ORDER BY t.status
+            ");
+            $stmt->execute(['user_id' => $userId]);
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
+        catch (Exception $e) {
+            error_log("Error getting tasks by status: " . $e->getMessage());
             return [];
         }
     }
@@ -177,22 +204,6 @@ class ClientDashboardController {
             error_log("Error getting notifications: " . $e->getMessage());
             return [];
         }
-    }
-
-    public function getTasks() {
-        Session::start();
-        
-        if (!Session::has('user_id') || Session::get('user_role_id') != 3) {
-            header('HTTP/1.1 401 Unauthorized');
-            echo json_encode(['error' => 'Unauthorized']);
-            exit;
-        }
-
-        $userId = Session::get('user_id');
-        $tasks = $this->getRecentTasks($userId, 50); // Get more tasks for the tasks page
-        
-        header('Content-Type: application/json');
-        echo json_encode(['tasks' => $tasks]);
     }
 
     public function updateTaskStatus() {
@@ -220,24 +231,24 @@ class ClientDashboardController {
             exit;
         }
 
-        // Clients can only update to "Pending Client Input" status
-        $allowedStatuses = ['Pending Client Input'];
+        // Managers can update to any status except 'Cancelled' (only admins can cancel)
+        $allowedStatuses = ['To Do', 'In Progress', 'Pending Client Input', 'Done'];
         if (!in_array($status, $allowedStatuses)) {
             header('HTTP/1.1 400 Bad Request');
-            echo json_encode(['error' => 'Invalid status for client']);
+            echo json_encode(['error' => 'Invalid status']);
             exit;
         }
 
         try {
             $db = Database::getInstance()->getConnection();
             
-            // Verify the task belongs to this client
+            // Verify the task is assigned to this manager or belongs to their client
             $stmt = $db->prepare("
                 SELECT t.id 
                 FROM tasks t
                 JOIN clients c ON t.client_id = c.id
-                JOIN users u ON c.client_email = u.email
-                WHERE t.id = :task_id AND u.id = :user_id
+                WHERE t.id = :task_id 
+                AND (t.assigned_to_user_id = :user_id OR c.assigned_to_user_id = :user_id)
             ");
             $stmt->execute(['task_id' => $taskId, 'user_id' => $userId]);
             
@@ -250,7 +261,9 @@ class ClientDashboardController {
             // Update task status
             $stmt = $db->prepare("
                 UPDATE tasks 
-                SET status = :status, updated_at = CURRENT_TIMESTAMP 
+                SET status = :status, 
+                    completed_at = CASE WHEN :status = 'Done' THEN CURRENT_TIMESTAMP ELSE NULL END,
+                    updated_at = CURRENT_TIMESTAMP 
                 WHERE id = :task_id
             ");
             $stmt->execute(['status' => $status, 'task_id' => $taskId]);
