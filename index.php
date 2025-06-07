@@ -63,7 +63,20 @@ $router->addRoute('GET', '/login', [AuthController::class, 'showLoginForm']);
 $router->addRoute('POST', '/login', [AuthController::class, 'login']);
 $router->addRoute('GET', '/logout', [AuthController::class, 'logout']); // Logout route
 $router->addRoute('GET', '/', [AuthController::class, 'showLoginForm']); // Default to login
-$router->addRoute('GET', '/dashboard', [DashboardController::class, 'index']); // Dashboard route
+
+
+$router->addRoute('GET', '/dashboard', function() {
+    Session::start();
+    $userRoleId = Session::get('user_role_id');
+    
+    if ($userRoleId == 3) {
+        $controller = new \App\Controllers\ClientDashboardController();
+        $controller->index();
+    } else {
+        $controller = new \App\Controllers\DashboardController();
+        $controller->index();
+    }
+});
 
 // Client Workspace Specific Routes
 $router->addRoute('GET', '/client/settings', [\App\Controllers\ClientSettingsController::class, 'index']);
@@ -73,7 +86,8 @@ $router->addRoute('GET', '/client/exercises', [\App\Controllers\ClientExercisesC
 $router->addRoute('GET', '/client/forum', [\App\Controllers\ClientForumController::class, 'index']);
 $router->addRoute('GET', '/client/playlist', [\App\Controllers\ClientPlayListController::class, 'index']);
 $router->addRoute('GET', '/client/shop', [\App\Controllers\ClientShopController::class, 'index']);
-
+$router->addRoute('GET', '/client/tasks/api', [\App\Controllers\ClientDashboardController::class, 'getTasks']);
+$router->addRoute('POST', '/client/update-task-status', [\App\Controllers\ClientDashboardController::class, 'updateTaskStatus']);
 
 // The block for simulating $_SERVER variables has been removed.
 // The application will now rely on the actual $_SERVER variables provided by the web server
